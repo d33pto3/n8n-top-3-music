@@ -1,0 +1,125 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        64
+      ],
+      "id": "3a4fe000-90e8-42b2-a1f5-fc1d73641c20",
+      "name": "Schedule Trigger",
+      "retryOnFail": true,
+      "notes": "Daily top music"
+    },
+    {
+      "parameters": {
+        "url": "http://ws.audioscrobbler.com/2.0/?method=chart.gettoptracks&api_key=6bb88ee601ef5589cf9299845176bae2&format=json&limit=5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -400,
+        64
+      ],
+      "id": "0fc446ff-ac69-4602-a35b-8091fbc43acc",
+      "name": "HTTP Request",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const tracks = $input.all()[0].json.tracks.track.slice(0,3);\nconst messageLines = tracks.map((t, i) => {\n  const searchQuery = encodeURIComponent(`${t.name} ${t.artist.name}`);\n  const youtubeLink = `https://www.youtube.com/results?search_query=${searchQuery}`;\n  return `${i+1}. ${t.name} — ${t.artist.name}\\n🎥 ${youtubeLink}`;\n});\n\nreturn [{ json: { text: `🎶 Today's Top 3 Tracks:\\n${messageLines.join(\"\\n\\n\")}` } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        64
+      ],
+      "id": "1edd0fdf-384b-455d-bbfd-234a3bd14c8c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fromEmail": "rakinfrhn@gmail.com",
+        "toEmail": "rakinfrhn@gmail.com, jbinteshowkat@gmail.com",
+        "html": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        64
+      ],
+      "id": "0579c0e9-6008-4b89-8ebe-df12c090560a",
+      "name": "Send email",
+      "webhookId": "0456d98a-5597-4c5d-84c4-c3f3415344bb",
+      "credentials": {
+        "smtp": {
+          "id": "3bcUOW7TEK8ZwMHa",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "d40e7f94-da83-4d93-a0ca-f916e0c765a3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f8fb8b7c9f227cabfd3532e55a910625bd5265edfac26d35ea7f1663405904ec"
+  },
+  "id": "b0onZGi8sPmSjQ2W",
+  "tags": []
+}
